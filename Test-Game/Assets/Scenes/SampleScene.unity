@@ -596,7 +596,7 @@ MonoBehaviour:
   slowDownDistance: 1.5
   acceleration: 10
   tipOffset: 1
-  boostSpeed: 100
+  boostSpeed: 15
   boostDuration: 0.5
   boostCount: 0
 --- !u!4 &1428636991

@@ -31,28 +31,35 @@ public class Player : MonoBehaviour
 
         if (distanceToMouse > 0.001f)
         {
-            // Normalize the direction vector.
+            // Determine normalized direction and rotate the player to face the mouse.
             Vector3 direction = dirToMouse.normalized;
-
-            // Rotate the player to face the mouse.
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Euler(0, 0, angle);
 
-            // Calculate the target position for the player's center so that the tip reaches the mouse.
-            // When transform.position equals targetPos, the tip (offset by tipOffset) will be at the mouse.
-            Vector3 targetPos = mousePos - direction * tipOffset;
+            // Convert the mouse position to local space relative to the player.
+            Vector3 localMousePos = transform.InverseTransformPoint(mousePos);
+            // Check if the mouse is inside the player's 2x1 capsule bounds.
+            // (Assuming half extents of 1 on x and 0.5 on y)
+            if (Mathf.Abs(localMousePos.x) <= 1f && Mathf.Abs(localMousePos.y) <= 0.5f)
+            {
+                // The cursor is within the player's capsule.
+                // Only rotate and smoothly decelerate movement to zero.
+                currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, acceleration * Time.deltaTime);
+                return;
+            }
 
-            // Calculate the effective distance from the player's current position to the target position.
+            // Calculate target position so the tip of the capsule (offset by tipOffset) reaches the mouse.
+            Vector3 targetPos = mousePos - direction * tipOffset;
             float effectiveDistance = Vector3.Distance(transform.position, targetPos);
 
-            // Determine the desired speed based on effectiveDistance (slowing down near the target).
+            // Determine the desired speed, slowing down when close to the target.
             float desiredSpeed = maxSpeed;
             if (effectiveDistance < slowDownDistance)
             {
                 desiredSpeed = maxSpeed * (effectiveDistance / slowDownDistance);
             }
 
-            // If Q is held down, override desired speed with zero (braking).
+            // Apply braking if the Q key is held.
             if (Input.GetKey(KeyCode.Q))
             {
                 desiredSpeed = 0f;
@@ -76,21 +83,19 @@ public class Player : MonoBehaviour
                 desiredSpeed = boostSpeed;
             }
 
-            // Smoothly transition currentSpeed towards the desiredSpeed.
+            // Smoothly transition currentSpeed towards desiredSpeed.
             currentSpeed = Mathf.MoveTowards(currentSpeed, desiredSpeed, acceleration * Time.deltaTime);
-
             // Move the player towards the target position.
             transform.position = Vector3.MoveTowards(transform.position, targetPos, currentSpeed * Time.deltaTime);
         }
         else
         {
-            // If very close, decelerate smoothly.
+            // When extremely close to the target, decelerate smoothly.
             currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, acceleration * Time.deltaTime);
         }
     }
 
-    // When colliding with a boost power-up (set as a trigger with the tag "BoostPowerUp"),
-    // grant three boosts and destroy the power-up object.
+    // On collision with a boost power-up trigger, grant three boosts and destroy the power-up.
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("BoostPowerUp"))
