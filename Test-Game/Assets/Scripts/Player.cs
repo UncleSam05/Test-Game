@@ -6,13 +6,12 @@ public class Player : MonoBehaviour
     public float maxSpeed = 5f;
     public float slowDownDistance = 3f;
     public float acceleration = 10f;
-    // Offset so the tip of the submarine (front) reaches the cursor.
+    // Offset so that the tip of the submarine (front) reaches the cursor.
     public float tipOffset = 1f;
 
     // Boost settings (underwater only).
     public float boostSpeed = 15f;
     public float boostDuration = 0.2f;
-    // When boosting, if within this distance the speed scales down.
     public float boostSlowDownDistance = 1f;
     private float boostTimer = 0f;
     private bool isBoosting = false;
@@ -22,28 +21,35 @@ public class Player : MonoBehaviour
     // Surfaced mode settings.
     // Y position at which the submarine is considered surfaced.
     public float waterSurfaceY = 10f;
-    // Fixed rotation when surfaced (e.g. horizontal facing).
+    // Fixed rotation when surfaced (e.g., horizontal facing).
     public Quaternion surfacedRotation = Quaternion.Euler(0, 0, 0);
     // Velocity used for smooth acceleration in surfaced mode.
     private Vector3 surfacedVelocity = Vector3.zero;
 
     // Transition blending between underwater (0) and surfaced (1).
+    // transitionTime controls how fast the submarine blends between modes.
     public float transitionTime = 0.5f;
     private float transition = 0f;
 
     void Update()
     {
-        // Update the transition parameter toward 1 if above waterSurfaceY, else toward 0.
-        float targetTransition = (transform.position.y >= waterSurfaceY) ? 1f : 0f;
+        // Read vertical input.
+        float verticalInput = Input.GetAxis("Vertical");
+
+        // Update the transition parameter.
+        // Only transition to surfaced mode if the submarine's y is at or above waterSurfaceY 
+        // and the player is not actively diving (vertical input >= 0).
+        float targetTransition = (transform.position.y >= waterSurfaceY && verticalInput >= 0) ? 1f : 0f;
         transition = Mathf.MoveTowards(transition, targetTransition, Time.deltaTime / transitionTime);
 
         // --------------------
         // UNDERWATER LOGIC
         // --------------------
         Vector3 underwaterVelocity = Vector3.zero;
-        Quaternion underwaterRotation = transform.rotation; // fallback
+        Quaternion underwaterRotation = transform.rotation;
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePos.z = transform.position.z; // keep z consistent
+
         Vector3 dirToMouse = mousePos - transform.position;
         float distanceToMouse = dirToMouse.magnitude;
 
@@ -56,22 +62,21 @@ public class Player : MonoBehaviour
             Vector3 localMousePos = transform.InverseTransformPoint(mousePos);
             if (Mathf.Abs(localMousePos.x) <= 1f && Mathf.Abs(localMousePos.y) <= 0.5f)
             {
-                // If the cursor is inside the submarine, only rotate and decelerate.
                 currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, acceleration * Time.deltaTime);
                 underwaterVelocity = Vector3.zero;
             }
             else
             {
-                // Calculate the target position so that the tip (offset by tipOffset) reaches the mouse.
+                // Calculate target position so that the tip (offset by tipOffset) reaches the mouse.
                 Vector3 targetPos = mousePos - direction * tipOffset;
                 float effectiveDistance = Vector3.Distance(transform.position, targetPos);
 
-                // Determine the desired speed (smooth slowdown when nearing the target).
+                // Determine desired speed (with smooth slowdown as it nears the target).
                 float desiredSpeed = maxSpeed;
                 if (effectiveDistance < slowDownDistance)
                     desiredSpeed = maxSpeed * (effectiveDistance / slowDownDistance);
 
-                // Boost logic applies only when fully underwater.
+                // Boost logic applies only when underwater.
                 if (transition < 0.01f)
                 {
                     if (isBoosting)
@@ -80,6 +85,7 @@ public class Player : MonoBehaviour
                             desiredSpeed = boostSpeed * (effectiveDistance / boostSlowDownDistance);
                         else
                             desiredSpeed = boostSpeed;
+
                         boostTimer -= Time.deltaTime;
                         if (boostTimer <= 0)
                             isBoosting = false;
@@ -96,11 +102,10 @@ public class Player : MonoBehaviour
                     }
                 }
 
-                // Allow braking via Q key.
+                // Braking with Q key.
                 if (Input.GetKey(KeyCode.Q))
                     desiredSpeed = 0f;
 
-                // Smoothly transition current speed.
                 currentSpeed = Mathf.MoveTowards(currentSpeed, desiredSpeed, acceleration * Time.deltaTime);
                 underwaterVelocity = direction * currentSpeed;
             }
@@ -113,28 +118,32 @@ public class Player : MonoBehaviour
         // --------------------
         // SURFACED LOGIC
         // --------------------
-        // Only allow forward/backward and downward movement when surfaced.
+        // While surfaced, only allow forward/backward movement and downward diving.
         float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-        if (vertical > 0)
-            vertical = 0;
-        Vector3 desiredSurfaceVelocity = new Vector3(horizontal, vertical, 0f) * maxSpeed;
+        // Disallow upward movement when surfaced.
+        if (verticalInput > 0)
+            verticalInput = 0;
+        Vector3 desiredSurfaceVelocity = new Vector3(horizontal, verticalInput, 0f) * maxSpeed;
         surfacedVelocity = Vector3.MoveTowards(surfacedVelocity, desiredSurfaceVelocity, acceleration * Time.deltaTime);
 
         // --------------------
         // BLEND MOVEMENT & ROTATION
         // --------------------
-        // Blend the underwater (mouse-controlled) and surfaced (keyboard-controlled) velocities.
         Vector3 blendedVelocity = Vector3.Lerp(underwaterVelocity, surfacedVelocity, transition);
-        transform.position += blendedVelocity * Time.deltaTime;
+        Vector3 newPos = transform.position + blendedVelocity * Time.deltaTime;
 
-        // Blend the rotation between underwaterRotation (free aiming) and the fixed surfacedRotation.
+        // Only force the vertical position to waterSurfaceY if not diving.
+        if (transition > 0 && verticalInput >= 0)
+        {
+            newPos.y = Mathf.Lerp(newPos.y, waterSurfaceY, transition);
+        }
+        transform.position = newPos;
+
         Quaternion blendedRotation = Quaternion.Slerp(underwaterRotation, surfacedRotation, transition);
         transform.rotation = blendedRotation;
     }
 
-    // On collision with a boost power-up (with trigger collider and tag "BoostPowerUp"),
-    // grant three boosts and destroy the power-up.
+    // On collision with a boost power-up trigger, grant three boosts and destroy the power-up.
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("BoostPowerUp"))
