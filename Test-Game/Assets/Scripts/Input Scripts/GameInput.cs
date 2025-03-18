@@ -3,26 +3,17 @@ using UnityEngine.InputSystem;
 
 public class GameInput : MonoBehaviour
 {
-    // Input actions for movement, boost, brake, cursor, and interact.
     private InputAction moveAction;
-    private InputAction boostAction;
-    private InputAction brakeAction;
-    private InputAction cursorAction;
-    private InputAction interactAction; // if needed for other mechanics
+    private InputAction interactAction;
+    private InputAction repulsionAction;
 
-    // Exposed properties for other scripts.
     public Vector2 MoveInput { get; private set; }
-    public bool BoostPressed { get; private set; }
-    public bool BrakePressed { get; private set; }
-    public Vector2 CursorPosition { get; private set; }
     public bool InteractPressed { get; private set; }
-
-    // Buffer field for boost trigger.
-    private bool boostBuffered = false;
+    public bool RepulsionPressed { get; private set; }
 
     private void Awake()
     {
-        // Set up the Move action using composite binding for WASD and Arrow keys.
+        // Movement (WASD and Arrow keys).
         moveAction = new InputAction("Move", InputActionType.Value);
         moveAction.AddCompositeBinding("2DVector")
             .With("Up", "<Keyboard>/w")
@@ -35,51 +26,30 @@ public class GameInput : MonoBehaviour
             .With("Left", "<Keyboard>/leftArrow")
             .With("Right", "<Keyboard>/rightArrow");
 
-        boostAction = new InputAction("Boost", binding: "<Keyboard>/space");
-        brakeAction = new InputAction("Brake", binding: "<Keyboard>/q");
-        cursorAction = new InputAction("Cursor", binding: "<Mouse>/position");
+        // Interact (E key).
         interactAction = new InputAction("Interact", binding: "<Keyboard>/e");
+        // Repulsion (R key).
+        repulsionAction = new InputAction("Repulsion", binding: "<Keyboard>/r");
     }
 
     private void OnEnable()
     {
         moveAction.Enable();
-        boostAction.Enable();
-        brakeAction.Enable();
-        cursorAction.Enable();
         interactAction.Enable();
+        repulsionAction.Enable();
     }
 
     private void OnDisable()
     {
         moveAction.Disable();
-        boostAction.Disable();
-        brakeAction.Disable();
-        cursorAction.Disable();
         interactAction.Disable();
+        repulsionAction.Disable();
     }
 
     private void Update()
     {
         MoveInput = moveAction.ReadValue<Vector2>();
-
-        // Instead of directly setting BoostPressed from boostAction.triggered,
-        // we buffer the trigger so that it remains true for at least one FixedUpdate.
-        if (boostAction.triggered)
-            boostBuffered = true;
-        BoostPressed = boostBuffered;
-
-        BrakePressed = brakeAction.ReadValue<float>() > 0.5f;
-        CursorPosition = cursorAction.ReadValue<Vector2>();
-
         InteractPressed = interactAction.triggered;
-    }
-
-    /// <summary>
-    /// Call this method from FixedUpdate (after processing boost) to clear the buffered boost.
-    /// </summary>
-    public void ConsumeBoost()
-    {
-        boostBuffered = false;
+        RepulsionPressed = repulsionAction.triggered;
     }
 }

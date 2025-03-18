@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: f3f095c82ef47c741af839fc1ff1351e
+guid: 2c550dab375aa4e4d87bb6be794d9b5b
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -98,7 +98,7 @@ ScriptedImporter:
     addSortingGroup: 1
     addShadowCasters: 0
   importFileNodeState: 1
-  platformSettingsDirtyTick: 638779151171671804
+  platformSettingsDirtyTick: 638779152354345532
   textureAssetName: 
   singleSpriteImportData:
   - name: 
@@ -123,9 +123,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: submarine_v1
+  - name: angler_v1
     originalName: 
-    pivot: {x: 0.45238099, y: -1.1060606}
+    pivot: {x: 0.60240966, y: -1.1363636}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -133,9 +133,9 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 168
+      width: 83
       height: 66
-    spriteID: 704d57c3d174f644887826098789658f
+    spriteID: 88101326628bf9a459da78a268290369
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -147,21 +147,21 @@ ScriptedImporter:
   spriteSheetImportData: []
   asepriteLayers:
   - layerIndex: 0
-    guid: 1620150074
-    name: submarine_v1
+    guid: -1295675945
+    name: angler_v1
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: submarine_v1
+    - name: angler_v1
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 20
-        y: 73
-        width: 168
+        x: 46
+        y: 75
+        width: 83
         height: 66
-      spriteId: 704d57c3d174f644887826098789658f
+      spriteId: 88101326628bf9a459da78a268290369
     linkedCells: []
     parentIndex: -1
   platformSettings:
@@ -217,4 +217,4 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 192, y: 192}
-  previousTextureSize: {x: 256, y: 128}
+  previousTextureSize: {x: 128, y: 128}
