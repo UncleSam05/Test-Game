@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6660351349553548737}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -82,6 +82,7 @@ MonoBehaviour:
   roamAreaMax: {x: 5, y: 5}
   newTargetThreshold: 0.1
   rotationSpeed: 5
+  spriteRenderer: {fileID: 0}
 --- !u!61 &6660351349553548737
 BoxCollider2D:
   m_ObjectHideFlags: 0

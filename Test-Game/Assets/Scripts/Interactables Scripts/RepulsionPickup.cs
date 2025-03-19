@@ -2,15 +2,17 @@ using UnityEngine;
 
 public class RepulsionPickup : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        if (other.CompareTag("Player"))
+        {
+            // Look for the RepulsionAbility component in the player (or its children).
+            RepulsionAbility repulsionAbility = other.GetComponentInChildren<RepulsionAbility>();
+            if (repulsionAbility != null)
+            {
+                repulsionAbility.ActivateRepulsionPowerUp();
+            }
+            Destroy(gameObject);
+        }
     }
 }
