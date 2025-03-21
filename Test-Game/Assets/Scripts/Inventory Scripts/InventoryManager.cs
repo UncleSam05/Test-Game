@@ -5,12 +5,10 @@ public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance { get; private set; }
 
-    // The background images for each inventory slot (always visible).
-    [SerializeField] private Image[] slotFrames;
-    // The child images that display the scrap icon (initially disabled).
-    [SerializeField] private Image[] scrapIcons;
-    // The sprite to display when a scrap is collected.
-    [SerializeField] private Sprite scrapSprite;
+    [Header("Inventory UI")]
+    [SerializeField] private Image[] slotFrames;  // Background frames for each slot (always visible).
+    [SerializeField] private Image[] scrapIcons;    // Child images that display scrap when collected.
+    [SerializeField] private Sprite scrapSprite;    // The sprite to display for a scrap.
 
     private int scrapCount = 0;
 
@@ -22,16 +20,12 @@ public class InventoryManager : MonoBehaviour
             Instance = this;
     }
 
-    public bool IsFull()
-    {
-        return scrapCount >= slotFrames.Length;
-    }
+    public int ScrapCount { get { return scrapCount; } }
 
     public bool AddScrap()
     {
         if (scrapCount < slotFrames.Length)
         {
-            // Make sure the scrap icon exists for this slot.
             if (scrapIcons != null && scrapIcons.Length > scrapCount)
             {
                 scrapIcons[scrapCount].sprite = scrapSprite;
@@ -42,4 +36,34 @@ public class InventoryManager : MonoBehaviour
         }
         return false;
     }
+
+    public bool SpendScrap(int amount)
+    {
+        if (scrapCount >= amount)
+        {
+            scrapCount -= amount;
+            UpdateUI();
+            return true;
+        }
+        return false;
+    }
+
+    private void UpdateUI()
+    {
+        // Reset all slots.
+        for (int i = 0; i < scrapIcons.Length; i++)
+        {
+            scrapIcons[i].enabled = false;
+        }
+        // Enable only for the scraps that remain.
+        for (int i = 0; i < scrapCount && i < scrapIcons.Length; i++)
+        {
+            scrapIcons[i].enabled = true;
+        }
+    }
+    public bool IsFull()
+    {
+        return scrapCount >= slotFrames.Length;
+    }
+
 }
