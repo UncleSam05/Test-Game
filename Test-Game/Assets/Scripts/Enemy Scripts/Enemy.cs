@@ -18,16 +18,18 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float newTargetThreshold = 0.1f; // When close to current roam target, pick a new one.
 
     [Header("Rotation Settings")]
-    [SerializeField] private float rotationSpeed = 5f;    // How fast the enemy rotates (smoothing factor).
-    // Reference to the SpriteRenderer for flipping.
-    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private float rotationSpeed = 5f;      // Smoothing factor for rotation.
+    [SerializeField] private float maxTiltAngle = 30f;      // Maximum tilt (in degrees) for the sprite.
+    [SerializeField] private float tiltFactor = 30f;        // Factor to convert vertical difference to tilt angle.
 
-    private Vector2 roamTarget;   // Current roaming destination.
+    private Vector2 roamTarget; // The current roaming destination.
     private Rigidbody2D rb;
+    private Vector3 originalScale;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        originalScale = transform.localScale;
     }
 
     private void Start()
@@ -37,7 +39,7 @@ public class Enemy : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Determine whether to chase the player or roam.
+        // Determine state: chase if player is within chaseRange; otherwise roam.
         float distanceToPlayer = Vector2.Distance(rb.position, playerTransform.position);
         currentState = (distanceToPlayer <= chaseRange) ? EnemyState.Chase : EnemyState.Roam;
 
@@ -49,22 +51,34 @@ public class Enemy : MonoBehaviour
 
     private void ChasePlayer()
     {
-        // Compute the direction toward the player.
+        // Calculate direction from enemy to player.
         Vector2 direction = ((Vector2)playerTransform.position - rb.position).normalized;
         rb.MovePosition(rb.position + direction * chaseSpeed * Time.fixedDeltaTime);
 
-        // Calculate target rotation in degrees.
-        float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        // Adjust angle and determine if sprite should be flipped.
-        targetAngle = AdjustAngleForSprite(targetAngle);
-        // Smoothly interpolate the current rotation toward the target.
-        float smoothAngle = Mathf.LerpAngle(rb.rotation, targetAngle, rotationSpeed * Time.fixedDeltaTime);
-        rb.MoveRotation(smoothAngle);
+        // Flip sprite based on horizontal direction.
+        if (direction.x >= 0)
+        {
+            transform.localScale = new Vector3(Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
+        }
+        else
+        {
+            transform.localScale = new Vector3(-Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
+        }
+
+        // Calculate tilt angle based on vertical component.
+        float tiltAngle = Mathf.Clamp(direction.y * tiltFactor, -maxTiltAngle, maxTiltAngle);
+        // Invert tilt if enemy is facing left.
+        if (direction.x < 0)
+        {
+            tiltAngle = -tiltAngle;
+        }
+        float newRotation = Mathf.LerpAngle(rb.rotation, tiltAngle, rotationSpeed * Time.fixedDeltaTime);
+        rb.MoveRotation(newRotation);
     }
 
     private void Roam()
     {
-        // Compute direction toward the current roam target.
+        // Calculate direction toward roam target.
         Vector2 direction = roamTarget - rb.position;
         if (direction.magnitude < newTargetThreshold)
         {
@@ -74,10 +88,24 @@ public class Enemy : MonoBehaviour
         direction.Normalize();
         rb.MovePosition(rb.position + direction * roamSpeed * Time.fixedDeltaTime);
 
-        float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        targetAngle = AdjustAngleForSprite(targetAngle);
-        float smoothAngle = Mathf.LerpAngle(rb.rotation, targetAngle, rotationSpeed * Time.fixedDeltaTime);
-        rb.MoveRotation(smoothAngle);
+        // Flip sprite based on horizontal direction.
+        if (direction.x >= 0)
+        {
+            transform.localScale = new Vector3(Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
+        }
+        else
+        {
+            transform.localScale = new Vector3(-Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
+        }
+
+        // Calculate tilt angle based on vertical component.
+        float tiltAngle = Mathf.Clamp(direction.y * tiltFactor, -maxTiltAngle, maxTiltAngle);
+        if (direction.x < 0)
+        {
+            tiltAngle = -tiltAngle;
+        }
+        float newRotation = Mathf.LerpAngle(rb.rotation, tiltAngle, rotationSpeed * Time.fixedDeltaTime);
+        rb.MoveRotation(newRotation);
     }
 
     private void PickNewRoamTarget()
@@ -85,32 +113,5 @@ public class Enemy : MonoBehaviour
         float randomX = Random.Range(roamAreaMin.x, roamAreaMax.x);
         float randomY = Random.Range(roamAreaMin.y, roamAreaMax.y);
         roamTarget = new Vector2(randomX, randomY);
-    }
-
-    /// <summary>
-    /// Adjusts the target angle so that the enemy's sprite remains upright in a side-view game.
-    /// If the angle exceeds 90° (or is below -90°), subtracts or adds 180° and sets the sprite to flip.
-    /// </summary>
-    /// <param name="angle">The original target angle in degrees.</param>
-    /// <returns>The adjusted angle.</returns>
-    private float AdjustAngleForSprite(float angle)
-    {
-        bool flip = false;
-        if (angle > 90f)
-        {
-            angle -= 180f;
-            flip = true;
-        }
-        else if (angle < -90f)
-        {
-            angle += 180f;
-            flip = true;
-        }
-
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.flipX = flip;
-        }
-        return angle;
     }
 }
