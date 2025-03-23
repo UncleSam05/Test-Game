@@ -6,10 +6,8 @@ public class Player : MonoBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
+    // You can remove waterSurfaceY if it's no longer needed, or keep it for other logic.
     [SerializeField] private float waterSurfaceY = 10f;
-    // Multiplier for movement speed: horizontal movement will be faster.
-    [SerializeField] private float horizontalMultiplier = 1.5f;
-    [SerializeField] private float verticalMultiplier = 1f;
 
     [Header("Input")]
     [SerializeField] private GameInput gameInput;
@@ -28,17 +26,15 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Get raw movement input from GameInput.
+        // Get movement input from GameInput.
         Vector2 moveInput = gameInput.MoveInput;
 
-        // Scale the input: horizontal faster than vertical.
-        Vector2 scaledInput = new Vector2(moveInput.x * horizontalMultiplier, moveInput.y * verticalMultiplier);
+        // Calculate new position based on input.
+        Vector2 newPos = rb.position + moveInput * moveSpeed * Time.fixedDeltaTime;
 
-        // Prevent upward movement when at or above waterSurfaceY.
-        if (rb.position.y >= waterSurfaceY && scaledInput.y > 0)
-            scaledInput.y = 0;
+        // Clamp the y value so that the player never goes above y = 0.
+        newPos.y = Mathf.Min(newPos.y, 0f);
 
-        Vector2 newPos = rb.position + scaledInput * moveSpeed * Time.fixedDeltaTime;
         rb.MovePosition(newPos);
     }
 
@@ -54,6 +50,5 @@ public class Player : MonoBehaviour
         {
             visualSprite.flipX = false;
         }
-        // If horizontal input is zero, retain the previous flip state.
     }
 }
