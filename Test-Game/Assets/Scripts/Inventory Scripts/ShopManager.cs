@@ -4,15 +4,15 @@ using UnityEngine.UI;
 public class ShopManager : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private GameObject shopPanel;       // The panel containing your shop UI.
-    [SerializeField] private Button armorUpgradeButton;    // The button for buying the armor upgrade.
+    [SerializeField] private GameObject shopPanel;         // The panel containing your shop UI.
+    [SerializeField] private Button drillUpgradeButton;      // The button for buying the drill upgrade.
 
-    [Header("Upgrade Settings")]
-    [SerializeField] private int armorUpgradeCost = 2;     // Cost in scrap to buy the armor upgrade.
+    [Header("Drill Upgrade Settings")]
+    [SerializeField] private int drillUpgradeCost = 2;       // Cost in scrap to buy the drill upgrade.
+    [SerializeField] private GameObject drillVisual;         // Reference to the Drill Visual child on the player.
 
     [Header("References")]
     [SerializeField] private InventoryManager inventoryManager; // Reference to your InventoryManager.
-    [SerializeField] private PlayerHealth playerHealth;         // Reference to your PlayerHealth script.
 
     private bool shopOpen = false;
 
@@ -21,13 +21,17 @@ public class ShopManager : MonoBehaviour
         if (shopPanel != null)
             shopPanel.SetActive(false);
 
-        if (armorUpgradeButton != null)
-            armorUpgradeButton.onClick.AddListener(BuyArmorUpgrade);
+        if (drillUpgradeButton != null)
+            drillUpgradeButton.onClick.AddListener(BuyDrillUpgrade);
+
+        // Ensure the drill visual is initially disabled.
+        if (drillVisual != null)
+            drillVisual.SetActive(false);
     }
 
     private void Update()
     {
-        // Toggle shop with Tab key.
+        // Toggle shop with the Tab key.
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             ToggleShop();
@@ -49,20 +53,26 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    private void BuyArmorUpgrade()
+    private void BuyDrillUpgrade()
     {
-        if (inventoryManager != null && playerHealth != null)
+        if (inventoryManager != null)
         {
-            if (inventoryManager.SpendScrap(armorUpgradeCost))
+            if (inventoryManager.SpendScrap(drillUpgradeCost))
             {
-                playerHealth.IncreaseMaxHealth(1);
-                Debug.Log("Armor upgrade purchased!");
-                // Optionally, disable the button if only one upgrade is allowed.
-                armorUpgradeButton.interactable = false;
+                if (drillVisual != null)
+                {
+                    drillVisual.SetActive(true);
+                    Debug.Log("Drill upgrade purchased and activated!");
+                }
+                else
+                {
+                    Debug.LogWarning("Drill Visual reference not set in ShopManager.");
+                }
+                drillUpgradeButton.interactable = false;
             }
             else
             {
-                Debug.Log("Not enough scrap to purchase armor upgrade!");
+                Debug.Log("Not enough scrap to purchase drill upgrade!");
             }
         }
     }

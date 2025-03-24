@@ -6,10 +6,13 @@ public class GameInput : MonoBehaviour
     private InputAction moveAction;
     private InputAction interactAction;
     private InputAction repulsionAction;
+    private InputAction mineAction;
 
     public Vector2 MoveInput { get; private set; }
     public bool InteractPressed { get; private set; }
     public bool RepulsionPressed { get; private set; }
+    // Returns true when the left mouse button is held.
+    public bool IsMinePressed { get { return mineAction.ReadValue<float>() > 0.5f; } }
 
     private void Awake()
     {
@@ -30,6 +33,8 @@ public class GameInput : MonoBehaviour
         interactAction = new InputAction("Interact", binding: "<Keyboard>/e");
         // Repulsion (R key).
         repulsionAction = new InputAction("Repulsion", binding: "<Keyboard>/r");
+        // Mine (Left Mouse Button).
+        mineAction = new InputAction("Mine", binding: "<Mouse>/leftButton");
     }
 
     private void OnEnable()
@@ -37,6 +42,7 @@ public class GameInput : MonoBehaviour
         moveAction.Enable();
         interactAction.Enable();
         repulsionAction.Enable();
+        mineAction.Enable();
     }
 
     private void OnDisable()
@@ -44,6 +50,7 @@ public class GameInput : MonoBehaviour
         moveAction.Disable();
         interactAction.Disable();
         repulsionAction.Disable();
+        mineAction.Disable();
     }
 
     private void Update()
@@ -51,5 +58,6 @@ public class GameInput : MonoBehaviour
         MoveInput = moveAction.ReadValue<Vector2>();
         InteractPressed = interactAction.triggered;
         RepulsionPressed = repulsionAction.triggered;
+        // Mine input is read on demand via IsMinePressed.
     }
 }
