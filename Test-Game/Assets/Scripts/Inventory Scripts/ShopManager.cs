@@ -41,16 +41,8 @@ public class ShopManager : MonoBehaviour
     private void ToggleShop()
     {
         shopOpen = !shopOpen;
-        if (shopOpen)
-        {
-            shopPanel.SetActive(true);
-            Time.timeScale = 0f;  // Pause the game.
-        }
-        else
-        {
-            shopPanel.SetActive(false);
-            Time.timeScale = 1f;  // Resume the game.
-        }
+        shopPanel.SetActive(shopOpen);
+        Time.timeScale = shopOpen ? 0f : 1f;
     }
 
     private void BuyDrillUpgrade()
@@ -62,6 +54,12 @@ public class ShopManager : MonoBehaviour
                 if (drillVisual != null)
                 {
                     drillVisual.SetActive(true);
+                    Animator drillAnimator = drillVisual.GetComponent<Animator>();
+                    if (drillAnimator != null)
+                    {
+                        // Trigger the emerge animation.
+                        drillAnimator.SetTrigger("ActivateDrill");
+                    }
                     Debug.Log("Drill upgrade purchased and activated!");
                 }
                 else

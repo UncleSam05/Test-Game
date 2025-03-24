@@ -5,6 +5,9 @@ TextureImporter:
   - first:
       213: -6267844718549991842
     second: DrillSprite_0
+  - first:
+      213: 1011209777273213148
+    second: DrillSprite_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -116,10 +119,10 @@ TextureImporter:
       name: DrillSprite_0
       rect:
         serializedVersion: 2
-        x: 37
-        y: 1
-        width: 113
-        height: 191
+        x: 38
+        y: 8
+        width: 111
+        height: 183
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,11 +137,33 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: DrillSprite_1
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 8
+        width: 111
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd095cf4fe9880e00800000000000000
+      internalID: 1011209777273213148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5f8e0f3b0bc2589459ae5940d1f0c8ea
     internalID: 0
     vertices: []
     indices: 
@@ -149,6 +174,7 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       DrillSprite_0: -6267844718549991842
+      DrillSprite_1: 1011209777273213148
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

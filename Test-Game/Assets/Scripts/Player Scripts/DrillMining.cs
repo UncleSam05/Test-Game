@@ -8,11 +8,13 @@ public class DrillMining : MonoBehaviour
     private float holdTimer = 0f;
     private Ore currentOre = null;
     private GameInput gameInput;
+    private Animator drillAnimator;
 
     private void Awake()
     {
         // Locate the GameInput instance in the scene.
-        gameInput = FindObjectOfType<GameInput>();
+        gameInput = FindFirstObjectByType<GameInput>();
+        drillAnimator = GetComponent<Animator>();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -36,19 +38,28 @@ public class DrillMining : MonoBehaviour
 
     private void Update()
     {
-        // Only proceed if an ore is nearby and the mine input is active.
-        if (currentOre != null && gameInput != null && gameInput.IsMinePressed)
+        // Check if left mouse is held via GameInput.
+        if (gameInput != null && gameInput.IsMinePressed)
         {
-            holdTimer += Time.deltaTime;
-            if (holdTimer >= requiredHoldTime)
+            // Set animator parameter to trigger the drill loop animation.
+            if (drillAnimator != null)
+                drillAnimator.SetBool("IsDrilling", true);
+
+            if (currentOre != null)
             {
-                currentOre.Mine();
-                ResetMining();
+                holdTimer += Time.deltaTime;
+                if (holdTimer >= requiredHoldTime)
+                {
+                    currentOre.Mine();
+                    ResetMining();
+                }
             }
         }
         else
         {
-            // If the player stops holding the button or no ore is in range, reset the timer.
+            // When left click is released, stop the drill loop animation and reset timer.
+            if (drillAnimator != null)
+                drillAnimator.SetBool("IsDrilling", false);
             ResetMining();
         }
     }
@@ -58,4 +69,3 @@ public class DrillMining : MonoBehaviour
         holdTimer = 0f;
     }
 }
-
