@@ -6,6 +6,7 @@ TagManager:
   tags:
   - BoostPowerUp
   - Enemy
+  - OreFragment
   layers:
   - Default
   - TransparentFX

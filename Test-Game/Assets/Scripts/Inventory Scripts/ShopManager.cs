@@ -4,15 +4,15 @@ using UnityEngine.UI;
 public class ShopManager : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private GameObject shopPanel;         // The panel containing your shop UI.
-    [SerializeField] private Button drillUpgradeButton;      // The button for buying the drill upgrade.
+    [SerializeField] private GameObject shopPanel;
+    [SerializeField] private Button drillUpgradeButton;
 
     [Header("Drill Upgrade Settings")]
-    [SerializeField] private int drillUpgradeCost = 2;       // Cost in scrap to buy the drill upgrade.
-    [SerializeField] private GameObject drillVisual;         // Reference to the Drill Visual child on the player.
+    [SerializeField] private int drillUpgradeCost = 2;
+    [SerializeField] private GameObject drillVisual;
 
     [Header("References")]
-    [SerializeField] private InventoryManager inventoryManager; // Reference to your InventoryManager.
+    [SerializeField] private InventoryManager inventoryManager;
 
     private bool shopOpen = false;
 
@@ -31,7 +31,6 @@ public class ShopManager : MonoBehaviour
 
     private void Update()
     {
-        // Toggle shop with the Tab key.
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             ToggleShop();
@@ -54,13 +53,7 @@ public class ShopManager : MonoBehaviour
                 if (drillVisual != null)
                 {
                     drillVisual.SetActive(true);
-                    Animator drillAnimator = drillVisual.GetComponent<Animator>();
-                    if (drillAnimator != null)
-                    {
-                        // Trigger the emerge animation.
-                        drillAnimator.SetTrigger("ActivateDrill");
-                    }
-                    Debug.Log("Drill upgrade purchased and activated!");
+                    Debug.Log("Drill upgrade purchased and drill activated!");
                 }
                 else
                 {

@@ -144,6 +144,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ToggleDrill"",
+                    ""type"": ""Button"",
+                    ""id"": ""54611310-22a3-4f81-8af6-82679aae5e9e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -256,6 +265,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Repulsion"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f06f365c-6227-43de-bdba-ceb211d808dd"",
+                    ""path"": ""<Keyboard>/x"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleDrill"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -270,6 +290,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Cursor = m_Player.FindAction("Cursor", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         m_Player_Repulsion = m_Player.FindAction("Repulsion", throwIfNotFound: true);
+        m_Player_ToggleDrill = m_Player.FindAction("ToggleDrill", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -356,6 +377,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Cursor;
     private readonly InputAction m_Player_Interact;
     private readonly InputAction m_Player_Repulsion;
+    private readonly InputAction m_Player_ToggleDrill;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -391,6 +413,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Repulsion".
         /// </summary>
         public InputAction @Repulsion => m_Wrapper.m_Player_Repulsion;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/ToggleDrill".
+        /// </summary>
+        public InputAction @ToggleDrill => m_Wrapper.m_Player_ToggleDrill;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -435,6 +461,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Repulsion.started += instance.OnRepulsion;
             @Repulsion.performed += instance.OnRepulsion;
             @Repulsion.canceled += instance.OnRepulsion;
+            @ToggleDrill.started += instance.OnToggleDrill;
+            @ToggleDrill.performed += instance.OnToggleDrill;
+            @ToggleDrill.canceled += instance.OnToggleDrill;
         }
 
         /// <summary>
@@ -464,6 +493,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Repulsion.started -= instance.OnRepulsion;
             @Repulsion.performed -= instance.OnRepulsion;
             @Repulsion.canceled -= instance.OnRepulsion;
+            @ToggleDrill.started -= instance.OnToggleDrill;
+            @ToggleDrill.performed -= instance.OnToggleDrill;
+            @ToggleDrill.canceled -= instance.OnToggleDrill;
         }
 
         /// <summary>
@@ -546,5 +578,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRepulsion(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ToggleDrill" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnToggleDrill(InputAction.CallbackContext context);
     }
 }
