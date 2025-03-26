@@ -4,13 +4,28 @@ using UnityEngine.InputSystem; // For the new Input System
 
 public class DrillController : MonoBehaviour
 {
-    [Tooltip("Time interval (in seconds) between mining each fragment.")]
+    [Tooltip("Time interval (in seconds) between mining (removing) each fragment.")]
     public float chunkMiningInterval = 1f;
+    [Tooltip("Time interval (in seconds) between spawning rock particles while mining.")]
+    public float particleSpawnInterval = 0.2f;
     [Tooltip("Rotation offset (in degrees) to add to the drill's rotation.")]
     public float rotationOffset = 0f;
+    [Tooltip("Rock particle prefab spawned at the mining spot.")]
+    public GameObject rockParticlePrefab;
+    [Tooltip("Transform representing the tip of the drill where particles should spawn.")]
+    public Transform drillTip;
+
+    // Audio fields:
+    [Tooltip("Sound effect for the drill when it is not hitting ore.")]
+    public AudioClip drillIdleSound;
+    [Tooltip("Sound effect for the drill when it is hitting ore.")]
+    public AudioClip drillMiningSound;
+    [Tooltip("Audio source for playing drill sounds.")]
+    public AudioSource audioSource;
 
     private float holdTimer = 0f;
-    // This will hold the ore fragment that is currently colliding with the drill.
+    private float particleTimer = 0f;
+    // This will hold the ore fragment that is currently in contact with the drill.
     private GameObject currentFragment = null;
     private GameInput gameInput;
     private Animator drillAnimator;
@@ -23,6 +38,10 @@ public class DrillController : MonoBehaviour
     {
         gameInput = FindFirstObjectByType<GameInput>();
         drillAnimator = GetComponent<Animator>();
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+        }
     }
 
     private void Update()
@@ -31,13 +50,9 @@ public class DrillController : MonoBehaviour
         if (gameInput != null && gameInput.ToggleDrillTriggered && !isTransitioning)
         {
             if (!drillActive)
-            {
                 StartCoroutine(ActivateDrill());
-            }
             else
-            {
                 StartCoroutine(DeactivateDrill());
-            }
         }
 
         // Only allow drilling and rotation if the drill is active and not transitioning.
@@ -49,21 +64,42 @@ public class DrillController : MonoBehaviour
                 if (drillAnimator != null)
                     drillAnimator.SetBool("IsDrilling", true);
 
-                // If the drill is touching an ore fragment, accumulate time.
+                // If an ore fragment is in contact, accumulate timers.
                 if (currentFragment != null)
                 {
                     holdTimer += Time.deltaTime;
+                    particleTimer += Time.deltaTime;
+
+                    // Spawn a rock particle at intervals from the drill tip.
+                    if (particleTimer >= particleSpawnInterval)
+                    {
+                        SpawnRockParticle();
+                        particleTimer = 0f;
+                    }
+
+                    // When the hold timer reaches the mining interval, remove the fragment.
                     if (holdTimer >= chunkMiningInterval)
                     {
-                        // Get the Ore component from the fragment's parent.
-                        Ore ore = currentFragment.transform.parent.GetComponent<Ore>();
-                        if (ore != null)
+                        Transform parentTransform = currentFragment.transform.parent;
+                        if (parentTransform != null)
                         {
-                            ore.MineFragment(currentFragment);
+                            Ore ore = parentTransform.GetComponent<Ore>();
+                            if (ore != null)
+                            {
+                                ore.MineFragment(currentFragment);
+                            }
+                            else
+                            {
+                                Debug.LogError("No Ore component found on the parent of the current fragment!");
+                            }
                         }
-                        // Reset the fragment and timer after mining.
+                        else
+                        {
+                            Debug.LogError("Current fragment does not have a parent!");
+                        }
                         currentFragment = null;
                         holdTimer = 0f;
+                        particleTimer = 0f;
                     }
                 }
             }
@@ -88,6 +124,49 @@ public class DrillController : MonoBehaviour
             if (drillAnimator != null)
                 drillAnimator.SetBool("IsDrilling", false);
         }
+
+        // --- Audio Management ---
+        // --- Audio Management ---
+        if (audioSource != null)
+        {
+            if (drillActive && !isTransitioning)
+            {
+                if (gameInput != null && gameInput.IsMinePressed)
+                {
+                    if (currentFragment != null)
+                    {
+                        // Left click held and hitting ore: play mining sound.
+                        if (audioSource.clip != drillMiningSound)
+                        {
+                            audioSource.clip = drillMiningSound;
+                            audioSource.loop = true;
+                            audioSource.Play();
+                        }
+                    }
+                    else
+                    {
+                        // Left click held and not hitting ore: play idle sound.
+                        if (audioSource.clip != drillIdleSound)
+                        {
+                            audioSource.clip = drillIdleSound;
+                            audioSource.loop = true;
+                            audioSource.Play();
+                        }
+                    }
+                }
+                else
+                {
+                    // Left click not held: stop audio.
+                    if (audioSource.isPlaying)
+                        audioSource.Stop();
+                }
+            }
+            else
+            {
+                if (audioSource.isPlaying)
+                    audioSource.Stop();
+            }
+        }
     }
 
     private IEnumerator ActivateDrill()
@@ -95,7 +174,7 @@ public class DrillController : MonoBehaviour
         isTransitioning = true;
         if (drillAnimator != null)
             drillAnimator.SetTrigger("ActivateDrill");
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(2f);
         drillActive = true;
         isTransitioning = false;
     }
@@ -105,7 +184,7 @@ public class DrillController : MonoBehaviour
         isTransitioning = true;
         if (drillAnimator != null)
             drillAnimator.SetTrigger("DeactivateDrill");
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(2f);
         drillActive = false;
         isTransitioning = false;
         transform.rotation = Quaternion.Euler(0, 0, 0);
@@ -114,6 +193,26 @@ public class DrillController : MonoBehaviour
     private void ResetMining()
     {
         holdTimer = 0f;
+        particleTimer = 0f;
+    }
+
+    // Spawns a rock particle at the tip of the drill and rotates it to face the player.
+    private void SpawnRockParticle()
+    {
+        if (rockParticlePrefab != null && drillTip != null)
+        {
+            Vector3 spawnPos = drillTip.position;
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            float angle = 0f;
+            if (player != null)
+            {
+                Vector3 direction = player.transform.position - spawnPos;
+                angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            }
+            Quaternion particleRotation = Quaternion.Euler(0, 0, angle);
+            GameObject particle = Instantiate(rockParticlePrefab, spawnPos, particleRotation);
+            Destroy(particle, 1f); // Automatically destroy the particle after 1 second.
+        }
     }
 
     // These methods are called by the trigger handler on the drill child.
@@ -131,3 +230,6 @@ public class DrillController : MonoBehaviour
         }
     }
 }
+
+
+
